@@ -86,6 +86,11 @@ def get_arguments() -> argparse.Namespace:
         help="Skips pip install of required packages on startup",
     )
     parser.add_argument(
+        "--only-pip",
+        action="store_true",
+        help="Runs pip install of required packages on startup, then exits.",
+    )
+    parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable verbose logging to file."
     )
     parser.add_argument(
@@ -310,6 +315,10 @@ def main() -> int:
         debug=args.debug,
         open_ui=args.open_ui,
     )
+
+    if args.only_pip:
+       sys.stderr.write("Running setup pip.\n")
+       return runner.run_setup(runtime_conf)
 
     exit_code = runner.run(runtime_conf)
     if exit_code == RESTART_EXIT_CODE and not args.runner:

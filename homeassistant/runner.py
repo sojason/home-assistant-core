@@ -106,3 +106,20 @@ def run(runtime_config: RuntimeConfig) -> int:
     """Run Home Assistant."""
     asyncio.set_event_loop_policy(HassEventLoopPolicy(runtime_config.debug))
     return asyncio.run(setup_and_run_hass(runtime_config))
+
+async def setup_hass(runtime_config: RuntimeConfig) -> int:
+    """Set up Home Assistant and run."""
+    hass = await bootstrap.async_setup_hass(runtime_config)
+
+    if hass is None:
+        return 1
+ 
+    # threading._shutdown can deadlock forever
+    threading._shutdown = deadlock_safe_shutdown  # type: ignore[attr-defined] # pylint: disable=protected-access
+
+    return 0
+
+def run_setup(runtime_config: RuntimeConfig) -> int:
+    """Run the bootstrap of Home Assistant, then exit."""
+    asyncio.set_event_loop_policy(HassEventLoopPolicy(runtime_config.debug))
+    return asyncio.run(setup_hass(runtime_config))
